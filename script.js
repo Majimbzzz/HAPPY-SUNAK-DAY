@@ -120,11 +120,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // how many pieces per tick, scaled to the screen width
   function density() {
-    return Math.max(2, Math.round(canvas.width / 150));
+    return Math.max(4, Math.round(canvas.width / 80));
   }
 
   // fill the whole screen right away, not just from the top edge
-  for (let i = 0; i < density() * 40; i++) {
+  for (let i = 0; i < density() * 30; i++) {
     pieces.push(makePiece(Math.random() * canvas.width, Math.random() * canvas.height, false));
   }
 
@@ -132,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
   setInterval(function () {
     if (document.hidden) return;
     for (let i = 0; i < density(); i++) {
-      pieces.push(makePiece(Math.random() * canvas.width, -10, false));
+      pieces.push(makePiece(Math.random() * canvas.width, -10 - Math.random() * 30, false));
     }
   }, 120);
 
