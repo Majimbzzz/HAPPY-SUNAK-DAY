@@ -224,7 +224,7 @@ body {
 
 .title {
   flex: none;
-  margin: clamp(16px, 4vh, 48px) 0 0;
+  margin: clamp(48px, 9vh, 90px) 0 0;
   padding: 0 12px;
   box-sizing: border-box;
   width: 100%;
@@ -260,4 +260,25 @@ body {
   font-size: clamp(0.9rem, 1.8vw, 1.15rem);
   font-weight: 400;
   color: #6b4fa3;
+}
+
+.music-btn {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 20;
+  padding: 5px 11px;
+  border: 2px solid #4b2e83;
+  border-radius: 999px;
+  background: #f3eefb;
+  color: #4b2e83;
+  font-family: "Lato", "Arial", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(75, 46, 131, 0.3);
+}
+
+.music-btn:hover {
+  background: #e9defa;
 }

@@ -65,6 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function blowOutCandles() {
+    if (window.birthdayMusicPlaying) return; // music would trigger the mic
     let blownOut = 0;
 
     if (isBlowing()) {
@@ -214,3 +215,116 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("load", fitCake);
   fitCake();
 })();
+
+
+/* ---------- Birthday music (synthesized, no audio file needed) ---------- */
+(function () {
+  const btn = document.getElementById("musicBtn");
+  const BPM = 110;
+  const beat = 60 / BPM;
+
+  // [frequency in Hz, length in beats]
+  const G4 = 392, A4 = 440, B4 = 493.88, C5 = 523.25, D5 = 587.33,
+        E5 = 659.25, F5 = 698.46, G5 = 783.99;
+  const melody = [
+    [G4, 0.75], [G4, 0.25], [A4, 1], [G4, 1], [C5, 1], [B4, 2],
+    [G4, 0.75], [G4, 0.25], [A4, 1], [G4, 1], [D5, 1], [C5, 2],
+    [G4, 0.75], [G4, 0.25], [G5, 1], [E5, 1], [C5, 1], [B4, 1], [A4, 1],
+    [F5, 0.75], [F5, 0.25], [E5, 1], [C5, 1], [D5, 1], [C5, 2],
+  ];
+
+  let ctx = null;
+  let userPaused = false;
+
+  function refresh() {
+    const running = !!ctx && ctx.state === "running";
+    // the mic ignores blowing while the song is audible
+    window.birthdayMusicPlaying = running;
+    btn.textContent = running ? "⏸ Pause" : "▶ Play";
+  }
+
+  function finish() {
+    if (ctx) ctx.close();
+    ctx = null;
+    userPaused = false;
+    refresh();
+  }
+
+  function start() {
+    const c = new (window.AudioContext || window.webkitAudioContext)();
+    ctx = c;
+    userPaused = false;
+    c.onstatechange = function () {
+      if (ctx === c) refresh();
+    };
+
+    const master = c.createGain();
+    master.gain.value = 0.25;
+    master.connect(c.destination);
+
+    // schedule one full pass of the song, then queue the next pass
+    // when it ends, so the song loops until paused
+    function playOnce(startAt) {
+      let t = startAt;
+      let lastOsc = null;
+      melody.forEach(function (note) {
+        const freq = note[0];
+        const dur = note[1] * beat;
+
+        // music-box style: a soft triangle note plus a quiet octave above
+        [[freq, 1], [freq * 2, 0.25]].forEach(function (voice) {
+          const osc = c.createOscillator();
+          const gain = c.createGain();
+          osc.type = "triangle";
+          osc.frequency.value = voice[0];
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.exponentialRampToValueAtTime(voice[1], t + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.95);
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start(t);
+          osc.stop(t + dur);
+          lastOsc = osc;
+        });
+
+        t += dur;
+      });
+      lastOsc.onended = function () {
+        if (ctx === c) playOnce(c.currentTime + 1.5); // short pause, then repeat
+      };
+    }
+
+    playOnce(c.currentTime + 0.1);
+
+    refresh();
+  }
+
+  // Browsers block sound until the visitor interacts with the page.
+  // So we try to start right away, and if it is blocked the song begins
+  // on the first tap, click or key press anywhere on the page.
+  function unlockOnFirstTouch(e) {
+    if (e.target.closest && e.target.closest("#musicBtn")) return;
+    if (ctx && !userPaused && ctx.state === "suspended") ctx.resume();
+    ["pointerdown", "keydown", "touchstart"].forEach(function (ev) {
+      document.removeEventListener(ev, unlockOnFirstTouch);
+    });
+  }
+  ["pointerdown", "keydown", "touchstart"].forEach(function (ev) {
+    document.addEventListener(ev, unlockOnFirstTouch);
+  });
+
+  btn.addEventListener("click", function () {
+    if (!ctx) {
+      start(); // song finished earlier: play again
+      if (ctx.state === "suspended") ctx.resume();
+    } else if (ctx.state === "running") {
+      userPaused = true;
+      ctx.suspend();
+    } else {
+      userPaused = false;
+      ctx.resume();
+    }
+  });
+
+  start(); // autoplay attempt
+})(); 
