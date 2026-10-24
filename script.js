@@ -84,3 +84,100 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("getUserMedia not supported on your browser!");
   }
 });
+
+/* ---------- Confetti ---------- */
+(function () {
+  const canvas = document.createElement("canvas");
+  canvas.id = "confetti";
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext("2d");
+
+  const colors = ["#ff6b9d", "#ffd166", "#06d6a0", "#4cc9f0", "#ffffff", "#f78c6b", "#7b2cbf"];
+  let pieces = [];
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  function makePiece(x, y, burst) {
+    return {
+      x: x,
+      y: y,
+      w: 6 + Math.random() * 6,
+      h: 4 + Math.random() * 5,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: burst ? (Math.random() - 0.5) * 14 : (Math.random() - 0.5) * 1.5,
+      vy: burst ? -6 - Math.random() * 10 : 1 + Math.random() * 2.5,
+      rot: Math.random() * Math.PI * 2,
+      vr: (Math.random() - 0.5) * 0.3,
+      sway: Math.random() * Math.PI * 2,
+      burst: burst,
+    };
+  }
+
+  // how many pieces per tick, scaled to the screen width
+  function density() {
+    return Math.max(2, Math.round(canvas.width / 150));
+  }
+
+  // fill the whole screen right away, not just from the top edge
+  for (let i = 0; i < density() * 40; i++) {
+    pieces.push(makePiece(Math.random() * canvas.width, Math.random() * canvas.height, false));
+  }
+
+  // continuous rain across the full width
+  setInterval(function () {
+    if (document.hidden) return;
+    for (let i = 0; i < density(); i++) {
+      pieces.push(makePiece(Math.random() * canvas.width, -10, false));
+    }
+  }, 120);
+
+  // burst from all over the screen
+  function burst() {
+    const count = Math.max(300, Math.round(canvas.width * canvas.height / 2500));
+    for (let i = 0; i < count; i++) {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      pieces.push(makePiece(x, y, true));
+    }
+  }
+
+  // burst when the last candle goes out
+  const counter = document.getElementById("candleCount");
+  let previous = 0;
+  new MutationObserver(function () {
+    const now = parseInt(counter.textContent, 10) || 0;
+    if (previous > 0 && now === 0) burst();
+    previous = now;
+  }).observe(counter, { childList: true, characterData: true, subtree: true });
+
+  function frame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces = pieces.filter(function (p) {
+      return p.y < canvas.height + 20;
+    });
+    pieces.forEach(function (p) {
+      p.sway += 0.05;
+      p.x += p.vx + (p.burst ? 0 : Math.sin(p.sway) * 0.6);
+      p.y += p.vy;
+      p.rot += p.vr;
+      if (p.burst) {
+        p.vy += 0.35; // gravity
+        p.vx *= 0.985;
+        if (p.vy > 3) p.burst = false;
+      }
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
