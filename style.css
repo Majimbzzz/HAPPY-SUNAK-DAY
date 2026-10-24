@@ -1,17 +1,45 @@
+html {
+  height: 100%;
+}
+
 body {
+  --s: 1; /* cake scale, set by script.js to fit the screen */
   background: linear-gradient(160deg, #d8c8f0 0%, #b9a2e0 100%);
-  min-height: 100vh;
   margin: 0;
+  height: 100%;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* middle area that holds the cake */
+.stage {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* reserves the cake's scaled size in the layout */
+.cake-wrap {
+  position: relative;
+  flex: none;
+  width: calc(270px * var(--s));
+  height: calc(270px * var(--s));
 }
 
 .cake {
   position: absolute;
   width: 250px;
   height: 200px;
-  top: 50%;
-  left: 50%;
-  margin-top: -70px;
-  margin-left: -125px;
+  top: calc(45px * var(--s));
+  left: calc(10px * var(--s));
+  transform: scale(var(--s));
+  transform-origin: 0 0;
 }
 
 .plate {
@@ -195,16 +223,14 @@ body {
 }
 
 .title {
-  position: absolute;
-  top: 15vh;
-  left: 0;
-  width: 100%;
-  margin: 0;
+  flex: none;
+  margin: clamp(16px, 4vh, 48px) 0 0;
   padding: 0 12px;
   box-sizing: border-box;
+  width: 100%;
   text-align: center;
   font-family: "Lato", "Arial", sans-serif;
-  font-size: clamp(2.6rem, 11vw, 5.5rem);
+  font-size: clamp(2.2rem, 8vw, 5rem);
   font-weight: 900;
   line-height: 1.05;
   color: #4b2e83;
@@ -212,10 +238,9 @@ body {
 }
 
 .bottom-text {
-  position: absolute;
-  top: calc(50% + 160px);
-  left: 0;
+  flex: none;
   width: 100%;
+  margin: 0 0 clamp(16px, 5vh, 56px);
   padding: 0 16px;
   box-sizing: border-box;
   text-align: center;
@@ -225,14 +250,14 @@ body {
 
 .message {
   margin: 0 0 12px;
-  font-size: 1.3em;
+  font-size: clamp(1.05rem, 2.6vw, 1.7rem);
   font-style: italic;
   font-weight: 600;
 }
 
 .note {
   margin: 0;
-  font-size: 0.95em;
+  font-size: clamp(0.9rem, 1.8vw, 1.15rem);
   font-weight: 400;
   color: #6b4fa3;
 }

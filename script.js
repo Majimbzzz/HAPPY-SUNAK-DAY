@@ -195,3 +195,22 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   frame();
 })();
+
+
+/* ---------- Responsive cake size ---------- */
+(function () {
+  const stage = document.querySelector(".stage");
+
+  function fitCake() {
+    const w = stage.clientWidth;
+    const h = stage.clientHeight;
+    // the cake needs about 270 x 270 units of space at scale 1
+    const scale = Math.min(w / 290, h / 290);
+    const clamped = Math.max(0.5, Math.min(scale, 2.6));
+    document.body.style.setProperty("--s", clamped.toFixed(3));
+  }
+
+  window.addEventListener("resize", fitCake);
+  window.addEventListener("load", fitCake);
+  fitCake();
+})();
