@@ -209,3 +209,10 @@ body {
 .text p {
   margin: 0;
 }
+
+.text .hint {
+  margin-top: 14px;
+  font-size: 0.95em;
+  font-weight: 400;
+  color: #6b4fa3;
+}
