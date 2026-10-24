@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
   const cake = document.querySelector(".cake");
-  const candleCountDisplay = document.getElementById("candleCount");
   let candles = [];
   let audioContext;
   let analyser;
@@ -10,30 +9,46 @@ document.addEventListener("DOMContentLoaded", function () {
     const activeCandles = candles.filter(
       (candle) => !candle.classList.contains("out")
     ).length;
-    candleCountDisplay.textContent = activeCandles;
+    document.dispatchEvent(
+      new CustomEvent("candlecountchange", { detail: activeCandles })
+    );
   }
 
-  function addCandle(left, top) {
+  // How many candles drop onto the cake (use 3 or 5)
+  const CANDLE_COUNT = 5;
+
+  function dropCandle(left, top, delay) {
     const candle = document.createElement("div");
-    candle.className = "candle";
+    candle.className = "candle drop";
     candle.style.left = left + "px";
     candle.style.top = top + "px";
+    candle.style.animationDelay = delay + "ms";
 
     const flame = document.createElement("div");
     flame.className = "flame";
     candle.appendChild(flame);
 
     cake.appendChild(candle);
-    candles.push(candle);
-    updateCandleCount();
+
+    // count the candle once it has landed
+    candle.addEventListener("animationend", function onLand(e) {
+      if (e.target !== candle) return;
+      candle.removeEventListener("animationend", onLand);
+      candles.push(candle);
+      updateCandleCount();
+    });
   }
 
-  cake.addEventListener("click", function (event) {
-    const rect = cake.getBoundingClientRect();
-    const left = event.clientX - rect.left;
-    const top = event.clientY - rect.top;
-    addCandle(left, top);
-  });
+  function dropCandles() {
+    for (let i = 0; i < CANDLE_COUNT; i++) {
+      const t = CANDLE_COUNT === 1 ? 0.5 : i / (CANDLE_COUNT - 1);
+      const left = 55 + t * 140; // spread across the icing
+      const top = 8 + 14 * Math.sin(Math.PI * t); // gentle arc, middle candles in front
+      dropCandle(left, top, 400 + i * 350);
+    }
+  }
+
+  dropCandles();
 
   function isBlowing() {
     const bufferLength = analyser.frequencyBinCount;
@@ -147,13 +162,12 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // burst when the last candle goes out
-  const counter = document.getElementById("candleCount");
   let previous = 0;
-  new MutationObserver(function () {
-    const now = parseInt(counter.textContent, 10) || 0;
+  document.addEventListener("candlecountchange", function (e) {
+    const now = e.detail;
     if (previous > 0 && now === 0) burst();
     previous = now;
-  }).observe(counter, { childList: true, characterData: true, subtree: true });
+  });
 
   function frame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
