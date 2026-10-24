@@ -1,5 +1,7 @@
 body {
-  background-color: #333;
+  background: linear-gradient(160deg, #d8c8f0 0%, #b9a2e0 100%);
+  min-height: 100vh;
+  margin: 0;
 }
 
 .candle-count-display {
@@ -32,6 +34,7 @@ body {
   left: 50%;
   margin-top: -70px;
   margin-left: -125px;
+  cursor: pointer;
 }
 
 .plate {
@@ -40,7 +43,7 @@ body {
   position: absolute;
   bottom: -10px;
   left: -10px;
-  background-color: #ccc;
+  background-color: #f3eefb;
   border-radius: 50%;
   box-shadow: 0 2px 0 #b3b3b3, 0 4px 0 #b3b3b3, 0 5px 40px rgba(0, 0, 0, 0.5);
 }
@@ -184,4 +187,25 @@ body {
     transform: skewX(5deg);
     box-shadow: 0 0 10px rgba(255, 165, 0, 0.5), 0 0 20px rgba(255, 165, 0, 0.5), 0 0 60px rgba(255, 165, 0, 0.5), 0 0 80px rgba(255, 165, 0, 0.5);
   }
+}
+
+.text {
+  position: absolute;
+  top: calc(50% + 160px);
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #4b2e83;
+  font-family: "Lato", sans-serif;
+  font-weight: 300;
+  font-style: italic;
+}
+
+.text h1 {
+  font-size: 1.4em;
+  margin: 0 0 8px;
+}
+
+.text p {
+  margin: 0;
 }
