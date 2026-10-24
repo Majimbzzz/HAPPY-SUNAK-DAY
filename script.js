@@ -51,6 +51,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
   dropCandles();
 
+  // put a fresh set of lit candles on the cake
+  window.restartCandles = function () {
+    candles.forEach(function (c) { c.remove(); });
+    cake.querySelectorAll(".candle").forEach(function (c) { c.remove(); }); // ones still dropping
+    candles = [];
+    document.dispatchEvent(new Event("candlesreset"));
+    dropCandles();
+  };
+
   function isBlowing() {
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
@@ -201,6 +210,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // burst when the last candle goes out
   let previous = 0;
+  document.addEventListener("candlesreset", function () {
+    previous = 0;
+  });
   document.addEventListener("candlecountchange", function (e) {
     const now = e.detail;
     if (previous > 0 && now === 0) burst();
@@ -363,5 +375,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  // start the song again from the beginning
+  window.restartBirthdayMusic = function () {
+    if (ctx) {
+      const old = ctx;
+      ctx = null;
+      old.close();
+    }
+    start();
+    if (ctx.state === "suspended") ctx.resume();
+  };
+
   start(); // autoplay attempt
+})();
+
+
+/* ---------- Restart button ---------- */
+(function () {
+  document.getElementById("restartBtn").addEventListener("click", function () {
+    if (window.restartCandles) window.restartCandles();
+    if (window.restartBirthdayMusic) window.restartBirthdayMusic();
+  });
 })();

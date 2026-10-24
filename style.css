@@ -224,7 +224,7 @@ body {
 
 .title {
   flex: none;
-  margin: clamp(48px, 9vh, 90px) 0 0;
+  margin: clamp(16px, 4vh, 48px) 0 0;
   padding: 0 12px;
   box-sizing: border-box;
   width: 100%;
@@ -281,4 +281,16 @@ body {
 
 .music-btn:hover {
   background: #e9defa;
+}
+
+/* small round restart button, upper left */
+.restart-btn {
+  right: auto;
+  left: 10px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
