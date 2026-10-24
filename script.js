@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let candles = [];
   let audioContext;
   let analyser;
+  let analyserLow; // finer analyser, used to hear a blow over the music
   let microphone;
 
   function updateCandleCount() {
@@ -64,11 +65,34 @@ document.addEventListener("DOMContentLoaded", function () {
     return average > 40; //
   }
 
+  // While the birthday song is playing, the speakers would trip the normal
+  // check above. The song has no notes below ~390 Hz, while a blow into the
+  // mic is a low rumble, so we only listen to the 60-300 Hz band.
+  const LOW_BAND_THRESHOLD = 110; // lower = more sensitive
+  function isBlowingOverMusic() {
+    const bins = analyserLow.frequencyBinCount;
+    const data = new Uint8Array(bins);
+    analyserLow.getByteFrequencyData(data);
+
+    const binHz = audioContext.sampleRate / analyserLow.fftSize;
+    const from = Math.max(1, Math.round(60 / binHz));
+    const to = Math.max(from + 1, Math.round(300 / binHz));
+
+    let sum = 0;
+    for (let i = from; i <= to; i++) {
+      sum += data[i];
+    }
+    return sum / (to - from + 1) > LOW_BAND_THRESHOLD;
+  }
+
   function blowOutCandles() {
-    if (window.birthdayMusicPlaying) return; // music would trigger the mic
     let blownOut = 0;
 
-    if (isBlowing()) {
+    const blowing = window.birthdayMusicPlaying
+      ? isBlowingOverMusic()
+      : isBlowing();
+
+    if (blowing) {
       candles.forEach((candle) => {
         if (!candle.classList.contains("out") && Math.random() > 0.5) {
           candle.classList.add("out");
@@ -91,6 +115,19 @@ document.addEventListener("DOMContentLoaded", function () {
         microphone = audioContext.createMediaStreamSource(stream);
         microphone.connect(analyser);
         analyser.fftSize = 256;
+
+        analyserLow = audioContext.createAnalyser();
+        analyserLow.fftSize = 1024;
+        microphone.connect(analyserLow);
+
+        // some browsers keep the mic paused until the first tap
+        const wake = function () {
+          if (audioContext.state === "suspended") audioContext.resume();
+        };
+        ["pointerdown", "keydown", "touchstart"].forEach(function (ev) {
+          document.addEventListener(ev, wake);
+        });
+
         setInterval(blowOutCandles, 200);
       })
       .catch(function (err) {
@@ -327,4 +364,4 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   start(); // autoplay attempt
-})(); 
+})();
